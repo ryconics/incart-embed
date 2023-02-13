@@ -6,9 +6,28 @@ import './style.css'
 
 export type Doc<T> = T & { id: string }
 
+declare global {
+    interface Window {
+        turnstile: {
+            getResponse: () => string
+            reset: () => void
+        }
+    }
+}
+
+export const getCaptcha = () => {
+    window.turnstile.reset()
+    const res = window.turnstile.getResponse()
+    return res
+}
+
 const fetchProduct = () => {
     let product: Doc<ProductType> | undefined | null = undefined
-    const promise = fetch(import.meta.env + location.pathname)
+    const promise = fetch(import.meta.env.VITE_API_URL + location.pathname, {
+        headers: {
+            'X-Captcha-Token': getCaptcha(),
+        },
+    })
         .then((res) => res.json())
         .then((res) => (product = res))
         .catch((err) => {
